@@ -54,10 +54,10 @@ const getDashboardOverview = async (req, res) => {
     const userGrowth =
       lastUsers === 0 ? 100 : (((totalUsers - lastUsers) / lastUsers) * 100).toFixed(1);
 
-    // ✅ Stock Level Trend (Last 7 Months) — FIXED for ONLY_FULL_GROUP_BY
+    // ✅ Stock Level Trend (Last 6 Months) — Compatible with ONLY_FULL_GROUP_BY
     const [stockTrend] = await db.query(`
       SELECT 
-        DATE_FORMAT(createdAt, '%b %Y') AS month,
+        DATE_FORMAT(MIN(createdAt), '%b %Y') AS month,
         COUNT(*) AS total
       FROM product
       WHERE createdAt >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
@@ -91,7 +91,6 @@ const getDashboardOverview = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
-
 
 
 module.exports = { getDashboardOverview };
