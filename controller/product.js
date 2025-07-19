@@ -121,27 +121,40 @@ const getAllInventoryProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const [rows] = await db.query(`SELECT * FROM product WHERE id = ?`, [id]);
+
+    const [rows] = await db.query(
+      `
+      SELECT 
+        p.*, 
+        c.name AS category_name 
+      FROM product p
+      LEFT JOIN category c ON p.categoryId = c.id
+      WHERE p.id = ?
+      `,
+      [id]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    const p = rows[0];
+    const product = rows[0];
+
     res.json({
       success: true,
-      message: "Reterived Data",
-
+      message: "Retrieved data",
       data: {
-        ...p,
-        image: p.image ? JSON.parse(p.image) : []
+        ...product,
+        image: product.image ? JSON.parse(product.image) : []
       }
     });
+
   } catch (err) {
-    console.error(err);
+    console.error("Get Product Error:", err);
     res.status(500).json({ success: false, message: 'Failed to fetch product' });
   }
 };
+
 
 
 
