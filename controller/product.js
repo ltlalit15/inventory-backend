@@ -87,6 +87,36 @@ const getAllProducts = async (req, res) => {
   }
 };
 
+const getAllInventoryProducts = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        p.*, 
+        c.name AS category_name 
+      FROM product p
+      LEFT JOIN category c ON p.categoryId = c.id
+    `);
+
+    const formatted = rows.map(p => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      sku: p.sku,
+      categoryId: p.categoryId,
+      category_name: p.category_name,
+      stockQuantity: p.stockQuantity,
+      description: p.description,
+      image: p.image ? JSON.parse(p.image) : []
+    }));
+
+    res.json({ success: true, message: "Reterived All Data", data: formatted });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to fetch products' });
+  }
+};
+
+
 
 const getProductById = async (req, res) => {
   try {
@@ -177,4 +207,4 @@ const deleteProduct = async (req, res) => {
 
 
 
-module.exports = { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct };
+module.exports = { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct, getAllInventoryProducts };
