@@ -33,7 +33,8 @@ const getDashboardOverview = async (req, res) => {
 
     const totalProducts = productResult[0].count;
     const lastProducts = lastProductResult[0].count;
-    const productGrowth = lastProducts === 0 ? 100 : (((totalProducts - lastProducts) / lastProducts) * 100).toFixed(1);
+    const productGrowth =
+      lastProducts === 0 ? 100 : (((totalProducts - lastProducts) / lastProducts) * 100).toFixed(1);
 
     // ✅ Total Users (Current Month)
     const [userResult] = await db.query(`
@@ -50,17 +51,18 @@ const getDashboardOverview = async (req, res) => {
 
     const totalUsers = userResult[0].count;
     const lastUsers = lastUserResult[0].count;
-    const userGrowth = lastUsers === 0 ? 100 : (((totalUsers - lastUsers) / lastUsers) * 100).toFixed(1);
+    const userGrowth =
+      lastUsers === 0 ? 100 : (((totalUsers - lastUsers) / lastUsers) * 100).toFixed(1);
 
-    // ✅ Stock Level Trend (Last 7 Months)
+    // ✅ Stock Level Trend (Last 7 Months) — FIXED for ONLY_FULL_GROUP_BY
     const [stockTrend] = await db.query(`
       SELECT 
-        MONTHNAME(createdAt) AS month,
-        COUNT(*) AS total 
-      FROM product 
+        DATE_FORMAT(createdAt, '%b %Y') AS month,
+        COUNT(*) AS total
+      FROM product
       WHERE createdAt >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-      GROUP BY MONTH(createdAt)
-      ORDER BY MONTH(createdAt)
+      GROUP BY YEAR(createdAt), MONTH(createdAt)
+      ORDER BY YEAR(createdAt), MONTH(createdAt)
     `);
 
     const stockLabels = stockTrend.map(row => row.month);
@@ -69,7 +71,7 @@ const getDashboardOverview = async (req, res) => {
     // ✅ Final Response
     return res.json({
       status: true,
-      message: "Reterived data",
+      message: "Retrieved dashboard overview",
       totalProducts: {
         count: totalProducts,
         change: parseFloat(productGrowth)
@@ -89,6 +91,7 @@ const getDashboardOverview = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
 
 
 module.exports = { getDashboardOverview };
