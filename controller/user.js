@@ -67,7 +67,7 @@ const signUp = async (req, res) => {
 
 const editProfile = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role: incomingRole = "user" } = req.body;
+        const { firstName, lastName, email, password, role: incomingRole } = req.body;
         const { userId } = req.params;
 
         // Check if user exists
@@ -79,13 +79,13 @@ const editProfile = async (req, res) => {
         const currentUser = user[0];
 
         // Hash password only if it's provided
-        let hashedPassword = currentUser.password; // keep existing password
+        let hashedPassword = currentUser.password;
         if (password && password.trim() !== "") {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
-        // ✅ Preserve admin role if already admin
-        const finalRole = currentUser.role === "admin" ? "admin" : incomingRole;
+        // ✅ Prevent role change if current user is admin
+        const finalRole = currentUser.role === "admin" ? currentUser.role : (incomingRole || currentUser.role);
 
         // Update user
         await db.query(
@@ -94,10 +94,7 @@ const editProfile = async (req, res) => {
         );
 
         // Fetch updated user without password
-        const [updatedUser] = await db.query(
-            'SELECT * FROM user WHERE id = ?',
-            [userId]
-        );
+        const [updatedUser] = await db.query('SELECT * FROM user WHERE id = ?', [userId]);
 
         // Generate new token
         const token = jwt.sign(
@@ -117,6 +114,7 @@ const editProfile = async (req, res) => {
         res.status(500).json({ status: "false", message: 'Server error', data: [] });
     }
 };
+
 
 
 
