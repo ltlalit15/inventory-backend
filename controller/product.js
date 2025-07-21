@@ -161,10 +161,27 @@ const getProductById = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, sku, categoryId, stockQuantity, description } = req.body;
+
+    // Fetch existing product
+    const [existingRows] = await db.query(`SELECT * FROM product WHERE id = ?`, [id]);
+    if (existingRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    const existingProduct = existingRows[0];
+
+    // Destructure with fallback to existing values
+    const {
+      name = existingProduct.name,
+      price = existingProduct.price,
+      sku = existingProduct.sku,
+      categoryId = existingProduct.categoryId,
+      stockQuantity = existingProduct.stockQuantity,
+      description = existingProduct.description
+    } = req.body;
+
     let images = [];
 
-    // Upload new images if available
+    // Upload new images if provided
     if (req.files && req.files.image) {
       const files = Array.isArray(req.files.image) ? req.files.image : [req.files.image];
 
@@ -176,9 +193,7 @@ const updateProduct = async (req, res) => {
         images.push(result.secure_url);
       }
     } else {
-      // Keep existing images if none uploaded
-      const [existing] = await db.query(`SELECT image FROM product WHERE id = ?`, [id]);
-      images = existing.length > 0 ? JSON.parse(existing[0].image || '[]') : [];
+      images = existingProduct.image ? JSON.parse(existingProduct.image) : [];
     }
 
     // Update product
@@ -187,14 +202,14 @@ const updateProduct = async (req, res) => {
       [name, price, sku, categoryId, stockQuantity, description, JSON.stringify(images), id]
     );
 
-    const [rows] = await db.query(`SELECT * FROM product WHERE id = ?`, [id]);
+    const [updatedRows] = await db.query(`SELECT * FROM product WHERE id = ?`, [id]);
 
     res.json({
       success: true,
       message: 'Product updated successfully',
       data: {
-        ...rows[0],
-        image: rows[0].image ? JSON.parse(rows[0].image) : []
+        ...updatedRows[0],
+        image: updatedRows[0].image ? JSON.parse(updatedRows[0].image) : []
       }
     });
   } catch (err) {
