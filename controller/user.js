@@ -67,7 +67,7 @@ const signUp = async (req, res) => {
 
 const editProfile = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role = "user" } = req.body;
+        const { firstName, lastName, email, password, role: incomingRole = "user" } = req.body;
         const { userId } = req.params;
 
         // Check if user exists
@@ -76,13 +76,15 @@ const editProfile = async (req, res) => {
             return res.status(404).json({ status: "false", message: 'User not found', data: [] });
         }
 
+        const currentUser = user[0];
+
         // Hash password only if it's provided
-        let hashedPassword = user[0].password; // keep existing
+        let hashedPassword = currentUser.password; // keep existing password
         if (password && password.trim() !== "") {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
-         // ✅ Preserve admin role if already admin
+        // ✅ Preserve admin role if already admin
         const finalRole = currentUser.role === "admin" ? "admin" : incomingRole;
 
         // Update user
