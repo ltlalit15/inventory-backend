@@ -85,7 +85,7 @@ const editProfile = async (req, res) => {
         }
 
         // ✅ 3. Preserve 'admin' role if user is admin (case-insensitive)
-        const isAdmin = currentUser.role && currentUser.role.toLowerCase() === 'admin';
+        const isAdmin = currentUser.role && currentUser.role.toLowerCase() == 'admin';
         const finalRole = isAdmin ? currentUser.role : (incomingRole || currentUser.role);
 
         // ✅ 4. Update user
