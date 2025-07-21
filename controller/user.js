@@ -82,10 +82,13 @@ const editProfile = async (req, res) => {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
+         // ✅ Preserve admin role if already admin
+        const finalRole = currentUser.role === "admin" ? "admin" : incomingRole;
+
         // Update user
         await db.query(
             'UPDATE user SET firstName = ?, lastName = ?, email = ?, password = ?, role = ? WHERE id = ?',
-            [firstName, lastName, email, hashedPassword, role, userId]
+            [firstName, lastName, email, hashedPassword, finalRole, userId]
         );
 
         // Fetch updated user without password
