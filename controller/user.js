@@ -70,7 +70,7 @@ const editProfile = async (req, res) => {
         const { firstName, lastName, email, password, role: incomingRole } = req.body;
         const { userId } = req.params;
 
-        // Check if user exists
+        // ✅ 1. Check if user exists
         const [user] = await db.query('SELECT * FROM user WHERE id = ?', [userId]);
         if (user.length === 0) {
             return res.status(404).json({ status: "false", message: 'User not found', data: [] });
@@ -78,31 +78,37 @@ const editProfile = async (req, res) => {
 
         const currentUser = user[0];
 
-        // Hash password only if it's provided
+        // ✅ 2. Hash password only if provided
         let hashedPassword = currentUser.password;
         if (password && password.trim() !== "") {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
-        // ✅ Prevent role change if current user is admin
-        const finalRole = currentUser.role === "admin" ? currentUser.role : (incomingRole || currentUser.role);
+        // ✅ 3. Preserve 'admin' role if user is admin (case-insensitive)
+        const isAdmin = currentUser.role && currentUser.role.toLowerCase() === 'admin';
+        const finalRole = isAdmin ? currentUser.role : (incomingRole || currentUser.role);
 
-        // Update user
+        // ✅ 4. Update user
         await db.query(
             'UPDATE user SET firstName = ?, lastName = ?, email = ?, password = ?, role = ? WHERE id = ?',
             [firstName, lastName, email, hashedPassword, finalRole, userId]
         );
 
-        // Fetch updated user without password
+        // ✅ 5. Fetch updated user
         const [updatedUser] = await db.query('SELECT * FROM user WHERE id = ?', [userId]);
 
-        // Generate new token
+        // ✅ 6. Generate new JWT token
         const token = jwt.sign(
-            { id: updatedUser[0].id, email: updatedUser[0].email, role: updatedUser[0].role },
+            {
+                id: updatedUser[0].id,
+                email: updatedUser[0].email,
+                role: updatedUser[0].role
+            },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
 
+        // ✅ 7. Return response
         res.status(200).json({
             status: "true",
             message: 'User details updated successfully',
@@ -114,6 +120,7 @@ const editProfile = async (req, res) => {
         res.status(500).json({ status: "false", message: 'Server error', data: [] });
     }
 };
+
 
 
 
