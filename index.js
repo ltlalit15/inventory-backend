@@ -47,7 +47,7 @@ const server = http.createServer(app); // wrap express app with http server
 
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://inventory-ecommerce.netlify.app'],  // ✅ Only allow localhost:5173
+    origin: ['http://localhost:5173', 'https://inventory-ecommerce.netlify.app', 'http://bonbonteamapp.com'],  // ✅ Only allow localhost:5173
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  // ✅ Allow selected HTTP methods
    // allowedHeaders: ['Content-Type', 'Authorization']  // ✅ Allow these headers
 }));
