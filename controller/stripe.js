@@ -64,6 +64,22 @@ const createCartPayment = async (req, res) => {
 };
 
 
+  try {
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    
+    // Update DB with final status
+    await db.query(
+      'UPDATE payments SET status = ? WHERE paymentIntentId = ?',
+      [intent.status, paymentIntentId]
+    );
+
+    res.json({ status: intent.status });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 
 const getAllUserCartPaymentData = async (req, res) => {
@@ -147,4 +163,4 @@ const deletePaymentById = async (req, res) => {
 
 
 
-module.exports = {createCartPayment, getAllUserCartPaymentData, deletePaymentById};
+module.exports = {createCartPayment, getAllUserCartPaymentData, deletePaymentById, confirmPaymentStatus};
