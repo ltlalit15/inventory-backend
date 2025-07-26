@@ -63,6 +63,8 @@ const createCartPayment = async (req, res) => {
   }
 };
 
+const confirmPaymentStatus = async (req, res) => {
+  const { paymentIntentId } = req.body;
 
   try {
     const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
