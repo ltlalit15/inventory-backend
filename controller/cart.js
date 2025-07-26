@@ -131,7 +131,7 @@ const deleteCartItem = async (req, res) => {
   }
 };
 
-const getUserPaymentsWithDetails = async (req, res) => {
+const getUserCartWithPayments = async (req, res) => {
   try {
     const { userId } = req.params;
 
