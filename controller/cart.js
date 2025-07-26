@@ -131,34 +131,29 @@ const deleteCartItem = async (req, res) => {
   }
 };
 
-const getUserCartWithPayments = async (req, res) => {
+const getUserPaymentsWithDetails = async (req, res) => {
   try {
     const { userId } = req.params;
 
     const sql = `
       SELECT 
-        c.*, 
+        pay.*, 
         p.name AS productName, 
         p.image, 
         p.description, 
         u.firstName, 
         u.lastName, 
-        u.email,
-        pay.id AS paymentId,
-        pay.amount,
-        pay.paymentIntentId,
-        pay.status AS paymentStatus,
-        pay.createdAt
-      FROM cart c
-      JOIN product p ON c.productId = p.id
-      JOIN user u ON c.userId = u.id
-      JOIN payments pay ON FIND_IN_SET(c.id, pay.cartIds)
-      WHERE c.userId = ?
+        u.email
+      FROM payments pay
+      JOIN product p ON pay.productId = p.id
+      JOIN user u ON pay.userId = u.id
+      WHERE pay.userId = ?
     `;
 
-    const [cartItems] = await db.query(sql, [userId]);
+    const [paymentRecords] = await db.query(sql, [userId]);
 
-    const cleanedItems = cartItems.map((item) => {
+    // Clean image
+    const cleanedRecords = paymentRecords.map((item) => {
       try {
         const imageArray = JSON.parse(item.image);
         item.image = imageArray[0] || "";
@@ -170,14 +165,15 @@ const getUserCartWithPayments = async (req, res) => {
 
     res.status(200).json({
       status: "true",
-      message: "Retrieved user cart with successful payments only",
-      data: cleanedItems,
+      message: "User payments with product and user info",
+      data: cleanedRecords,
     });
   } catch (err) {
-    console.error("Get cart with payments error:", err);
+    console.error("Get payments error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 
 
