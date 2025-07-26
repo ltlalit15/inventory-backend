@@ -10,7 +10,7 @@ const stripe = require('stripe')(
 
 const createCartPayment = async (req, res) => {
   try {
-    const { userId, cartId, totalAmount } = req.body;
+    const { userId, cartId, productId, totalAmount } = req.body;
 
     if (!userId || !cartId || !Array.isArray(cartId) || !totalAmount) {
       return res.status(400).json({ error: 'Missing or invalid parameters' });
@@ -25,6 +25,7 @@ const createCartPayment = async (req, res) => {
       metadata: {
         userId,
         cartItems: cartId.join(','),
+        productId,
         type: 'cart_checkout',
       },
       description: `Payment for cart items: ${cartId.join(', ')}`,
@@ -34,12 +35,13 @@ const createCartPayment = async (req, res) => {
     // ✅ Insert cart payment into DB (optional)
     try {
       const insertQuery = `
-        INSERT INTO payments (userId, cartIds, amount, paymentIntentId, status)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO payments (userId, cartIds, productId, amount, paymentIntentId, status)
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
       await db.query(insertQuery, [
         userId,
         cartId.join(','),
+        productId,
         totalAmount,
         paymentIntent.id,
         status 
