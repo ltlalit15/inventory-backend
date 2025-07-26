@@ -29,6 +29,7 @@ const createCartPayment = async (req, res) => {
       },
       description: `Payment for cart items: ${cartId.join(', ')}`,
     });
+    const status = paymentIntent.status;
 
     // ✅ Insert cart payment into DB (optional)
     try {
@@ -41,7 +42,7 @@ const createCartPayment = async (req, res) => {
         cartId.join(','),
         totalAmount,
         paymentIntent.id,
-        'pending'
+        status 
       ]);
     } catch (dbErr) {
       console.error('DB Insert Error (payments):', dbErr);
@@ -53,6 +54,7 @@ const createCartPayment = async (req, res) => {
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
       amount: totalAmount,
+      status,
       message: 'PaymentIntent created for cart checkout'
     });
   } catch (error) {
