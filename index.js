@@ -16,6 +16,7 @@ const productRoutes = require('./routes/productRoutes');
 const dashboardOverviewRoutes = require('./routes/dashboardOverviewRoutes');
 const productQuantityRoutes = require('./routes/productQuantityRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 
 
 
@@ -98,6 +99,7 @@ app.use('/api/product', productRoutes);
 app.use('/api/dashboardOverview', dashboardOverviewRoutes);
 app.use('/api/productQuantity', productQuantityRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/webhook', webhookRoutes);
 
 
 // app.use('/api/user', authRoutes);
